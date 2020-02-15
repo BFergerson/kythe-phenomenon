@@ -13,7 +13,9 @@ import com.google.devtools.kythe.util.KytheURI
 /**
  * todo: description
  *
- * @version 0.1* @since 0.1* @author <ahref="mailto:brandon.fergerson@codebrig.com" > Brandon Fergerson</a>
+ * @version 0.1
+ * @since 0.1
+ * @author <a href="mailto:brandon.fergerson@codebrig.com">Brandon Fergerson</a>
  */
 class KytheRefCallObserver extends KytheIndexObserver {
 
