@@ -49,7 +49,7 @@ class TestClass {
         phenomena.processScanPath().collect(Collectors.toList())
         phenomena.close()
 
-        assertEquals(1, refCallObserver.functionCalls.size())
+        assertEquals(2, refCallObserver.functionCalls.size())
         assertNotNull(refCallObserver.functionCalls.get("java.io.PrintStream.println()"))
         assertEquals(16, refCallObserver.functionCalls.get("java.io.PrintStream.println()").size())
     }
