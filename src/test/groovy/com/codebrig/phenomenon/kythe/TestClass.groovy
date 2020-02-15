@@ -5,6 +5,7 @@ import com.codebrig.phenomena.code.CodeObserver
 import com.codebrig.phenomena.code.CodeObserverVisitor
 import com.codebrig.phenomena.code.structure.CodeStructureObserver
 import com.codebrig.phenomenon.kythe.build.KytheIndexBuilder
+import com.codebrig.phenomenon.kythe.observe.KytheRefCallObserver
 import org.eclipse.jgit.api.Git
 import org.junit.Test
 
@@ -32,7 +33,7 @@ class TestClass {
                 .call()
 
         def kytheObservers = new ArrayList<KytheIndexObserver>()
-        def refCallObserver = new com.codebrig.phenomenon.kythe.observe.KytheRefCallObserver()
+        def refCallObserver = new KytheRefCallObserver()
         kytheObservers.add(refCallObserver)
         def index = new KytheIndexBuilder(outDir).build(kytheObservers)
 
@@ -49,7 +50,7 @@ class TestClass {
         phenomena.processScanPath().collect(Collectors.toList())
         phenomena.close()
 
-        assertEquals(2, refCallObserver.functionCalls.size())
+        assertEquals(1, refCallObserver.functionCalls.size())
         assertNotNull(refCallObserver.functionCalls.get("java.io.PrintStream.println()"))
         assertEquals(16, refCallObserver.functionCalls.get("java.io.PrintStream.println()").size())
     }
@@ -70,7 +71,7 @@ class TestClass {
                 .call()
 
         def kytheObservers = new ArrayList<KytheIndexObserver>()
-        def refCallObserver = new com.codebrig.phenomenon.kythe.observe.KytheRefCallObserver()
+        def refCallObserver = new KytheRefCallObserver()
         kytheObservers.add(refCallObserver)
         def index = new KytheIndexBuilder(outDir).build(kytheObservers)
 
