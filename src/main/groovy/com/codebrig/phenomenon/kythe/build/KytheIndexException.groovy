@@ -5,7 +5,7 @@ package com.codebrig.phenomenon.kythe.build
  *
  * @version 0.1
  * @since 0.1
- * @author <a href="mailto:brandon.fergerson@codebrig.com">Brandon Fergerson</a>
+ * @author <a href="mailto:brandon@srcpl.us">Brandon Fergerson</a>
  */
 class KytheIndexException extends Exception {
 }
