@@ -1,5 +1,6 @@
 package com.codebrig.phenomenon.kythe
 
+import com.codebrig.arthur.observe.structure.filter.TypeFilter
 import com.codebrig.phenomena.Phenomena
 import com.codebrig.phenomena.code.CodeObserver
 import com.codebrig.phenomena.code.CodeObserverVisitor
@@ -87,11 +88,24 @@ class TestClass {
         phenomena.close()
 
         assertEquals(3, refCallObserver.functionCalls.size())
-        assertNotNull(refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod()"))
-        assertEquals(1, refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod()").size())
-        assertNotNull(refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2()"))
-        assertEquals(1, refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2()").size())
-        assertNotNull(refCallObserver.functionCalls.get("com.google.common.collect.Lists.newArrayList()"))
-        assertEquals(1, refCallObserver.functionCalls.get("com.google.common.collect.Lists.newArrayList()").size())
+        def myMethodCallers = refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod()")
+        assertNotNull(myMethodCallers)
+        assertEquals(1, myMethodCallers.size())
+        assertEquals("com.gitdetective.App2.main(java.lang.String[])",
+                new TypeFilter("MethodDeclaration")
+                        .getFilteredNodes(myMethodCallers.get(0), false).next().name)
+
+        def myMethod2Callers = refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2()")
+        assertNotNull(myMethod2Callers)
+        assertEquals(1, myMethod2Callers.size())
+        assertEquals("com.gitdetective.App2.anotherOne(java.lang.String,int)",
+                new TypeFilter("MethodDeclaration")
+                        .getFilteredNodes(myMethod2Callers.get(0), false).next().name)
+
+        def newArrayListCallers = refCallObserver.functionCalls.get("com.google.common.collect.Lists.newArrayList()")
+        assertNotNull(newArrayListCallers)
+        assertEquals("com.gitdetective.App2.main(java.lang.String[])",
+                new TypeFilter("MethodDeclaration")
+                        .getFilteredNodes(newArrayListCallers.get(0), false).next().name)
     }
 }

@@ -20,8 +20,8 @@ dependencies {
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.0.1.201806211838-r'
 
     compile 'org.codehaus.groovy:groovy-all:2.4.15'
-    compile 'com.github.codebrig:arthur:4c66a0b7ec'
-    compile 'com.github.codebrig:phenomena:cf355f79ae'
+    compile 'com.github.codebrig:arthur:16a2ba1679'
+    compile 'com.github.codebrig:phenomena:1f4f1b1d97'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation 'org.zeroturnaround:zt-exec:1.10'
     implementation 'com.h2database:h2:1.4.197'
