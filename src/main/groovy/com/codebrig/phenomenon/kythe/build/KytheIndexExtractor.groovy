@@ -24,7 +24,6 @@ class KytheIndexExtractor {
             "/kythe/loc/start", "/kythe/loc/end")
     private static final Set<String> KYTHE_RELATIONSHIP_PARSE_SET = Sets.newHashSet(
             "/kythe/edge/childof", "/kythe/edge/ref/call")
-    private static final File javacExtractor = new File("opt/kythe-v0.0.28/extractors/javac_extractor.jar")
     private static final String triplesRegexPattern = '\"(.+)\" \"(.+)\" \"(.*)\"'
     private static Set<String> classTypes = Sets.newHashSet("class", "enumClass", "interface")
     private final List<KytheIndexObserver> indexObservers
@@ -253,7 +252,7 @@ class KytheIndexExtractor {
 
     static KytheURI toUniversalUri(KytheURI uri) {
         if (uri.corpus == "jdk") return uri
-        def indexerPath = javacExtractor.absolutePath
+        def indexerPath = KytheIndexBuilder.javacExtractor.absolutePath
         if (uri.path.contains(indexerPath)) {
             uri = new KytheURI(uri.signature, uri.corpus, uri.root,
                     uri.path

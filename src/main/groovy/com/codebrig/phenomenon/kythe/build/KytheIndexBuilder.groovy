@@ -1,6 +1,6 @@
 package com.codebrig.phenomenon.kythe.build
 
-
+import com.codebrig.phenomenon.kythe.KytheIndexObserver
 import com.codebrig.phenomenon.kythe.model.KytheIndex
 import org.zeroturnaround.exec.ProcessExecutor
 
@@ -25,7 +25,7 @@ class KytheIndexBuilder {
         this.repositoryDirectory = Objects.requireNonNull(repositoryDirectory)
     }
 
-    KytheIndex build(List<com.codebrig.phenomenon.kythe.KytheIndexObserver> indexObservers) throws KytheIndexException {
+    KytheIndex build(List<KytheIndexObserver> indexObservers) throws KytheIndexException {
         def kytheDir = new File("/tmp/stuff/")
         kytheDir.mkdirs()
 
