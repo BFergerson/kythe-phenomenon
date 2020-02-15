@@ -1,13 +1,12 @@
 package com.codebrig.phenomenon.kythe.build
 
-
 import com.codebrig.phenomenon.kythe.KytheIndexObserver
 import com.codebrig.phenomenon.kythe.model.KytheIndex
 import com.codebrig.phenomenon.kythe.model.QualifiedClassFile
-import com.codebrig.phenomenon.kythe.model.QualifiedKytheURI
 import com.google.common.collect.Sets
 import com.google.devtools.kythe.proto.MarkedSource
 import com.google.devtools.kythe.util.KytheURI
+import groovy.util.logging.Slf4j
 import org.h2.mvstore.MVStore
 
 /**
@@ -17,6 +16,7 @@ import org.h2.mvstore.MVStore
  * @since 0.1
  * @author <a href="mailto:brandon@srcpl.us">Brandon Fergerson</a>
  */
+@Slf4j
 class KytheIndexExtractor {
 
     private static final Set<String> KYTHE_ENTITY_PARSE_SET = Sets.newHashSet(
@@ -42,7 +42,7 @@ class KytheIndexExtractor {
         index.importFile = importFile
         index.buildDirectory = new File("/tmp/stuff/otherproject-master/pom.xml").parentFile.absolutePath
         index.classes = new HashMap<>()//s.openMap("classes")
-        index.functions = new HashMap<>()//s.openMap("functions")
+        index.definedFunctions = new HashSet<>()//s.openMap("functions")
         index.extractedNodes = new HashMap<>()//s.openMap("extractedNodes")
         index.bindings = new HashMap<>()//s.openMap("bindings")
         index.paramToTypeMap = new HashMap<>()//s.openMap("paramToTypeMap")
@@ -233,7 +233,6 @@ class KytheIndexExtractor {
             }
 
             def subjectUri = subjectNode.uri
-            def objectUri = objectNode.uri
             def qualifiedName = subjectNode.getQualifiedName(index)
             def classQualifiedName = getQualifiedClassName(qualifiedName)
             if (classQualifiedName.contains('$')) {
@@ -241,11 +240,13 @@ class KytheIndexExtractor {
                 while (objectNode.parentNode?.isFile && objectNode.parentNode.uri != null
                         && objectNode != objectNode.parentNode) { //todo: how does node become its own parent?
                     objectNode = objectNode.parentNode
-                    objectUri = objectNode.uri
                 }
             }
             if (index.definedFiles.contains(classQualifiedName)) {
-                index.functions.put(objectUri, new QualifiedKytheURI(qualifiedName, subjectUri))
+                log.info "Defined function: " + qualifiedName
+                index.definedFunctions.add(subjectUri)
+            } else {
+                log.info "Undefined function: " + qualifiedName
             }
         }
     }

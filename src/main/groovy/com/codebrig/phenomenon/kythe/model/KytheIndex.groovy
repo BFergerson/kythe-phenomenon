@@ -16,7 +16,7 @@ import org.apache.commons.io.FilenameUtils
 class KytheIndex {
 
     Map<KytheURI, QualifiedClassFile> classes
-    Map<KytheURI, QualifiedKytheURI> functions
+    Set<KytheURI> definedFunctions
     Map<String, KytheNode> extractedNodes
     Map<String, String> bindings
     Map<String, String> paramToTypeMap

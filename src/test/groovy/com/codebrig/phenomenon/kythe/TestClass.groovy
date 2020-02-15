@@ -19,7 +19,7 @@ class TestClass {
 
     @Test
     void myProject() {
-        def outDir = new File("/tmp/stuff/myproject-master")
+        def outDir = new File("/tmp/stuff")
         if (outDir.exists()) {
             outDir.deleteDir()
         }
@@ -50,14 +50,12 @@ class TestClass {
         phenomena.processScanPath().collect(Collectors.toList())
         phenomena.close()
 
-        assertEquals(1, refCallObserver.functionCalls.size())
-        assertNotNull(refCallObserver.functionCalls.get("java.io.PrintStream.println()"))
-        assertEquals(16, refCallObserver.functionCalls.get("java.io.PrintStream.println()").size())
+        assertEquals(0, refCallObserver.functionCalls.size())
     }
 
     @Test
     void otherProject() {
-        def outDir = new File("/tmp/stuff/otherproject-master")
+        def outDir = new File("/tmp/stuff")
         if (outDir.exists()) {
             outDir.deleteDir()
         }
@@ -88,18 +86,12 @@ class TestClass {
         phenomena.processScanPath().collect(Collectors.toList())
         phenomena.close()
 
-        assertEquals(6, refCallObserver.functionCalls.size())
+        assertEquals(3, refCallObserver.functionCalls.size())
         assertNotNull(refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod()"))
         assertEquals(1, refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod()").size())
-        assertNotNull(refCallObserver.functionCalls.get("java.util.List.size()"))
-        assertEquals(1, refCallObserver.functionCalls.get("java.util.List.size()").size())
-        assertNotNull(refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2(java.lang.String)"))
-        assertEquals(1, refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2(java.lang.String)").size())
-        assertNotNull(refCallObserver.functionCalls.get("java.io.PrintStream.println()"))
-        assertEquals(2, refCallObserver.functionCalls.get("java.io.PrintStream.println()").size())
+        assertNotNull(refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2()"))
+        assertEquals(1, refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2()").size())
         assertNotNull(refCallObserver.functionCalls.get("com.google.common.collect.Lists.newArrayList()"))
         assertEquals(1, refCallObserver.functionCalls.get("com.google.common.collect.Lists.newArrayList()").size())
-        assertNotNull(refCallObserver.functionCalls.get("java.util.List.add()"))
-        assertEquals(1, refCallObserver.functionCalls.get("java.util.List.add()").size())
     }
 }
