@@ -26,21 +26,22 @@ class KytheIndexExtractor {
             "/kythe/edge/childof", "/kythe/edge/ref/call")
     private static final String triplesRegexPattern = '\"(.+)\" \"(.+)\" \"(.*)\"'
     private static Set<String> classTypes = Sets.newHashSet("class", "enumClass", "interface")
+    private final File kytheDirectory
     private final List<KytheIndexObserver> indexObservers
 
-    KytheIndexExtractor(List<KytheIndexObserver> indexObservers) {
+    KytheIndexExtractor(File kytheDirectory, List<KytheIndexObserver> indexObservers) {
+        this.kytheDirectory = Objects.requireNonNull(kytheDirectory)
         this.indexObservers = Objects.requireNonNull(indexObservers)
     }
 
     KytheIndex processIndexFile(File importFile) {
-        def outputDirectory = "/tmp/stuff"
-        def dbFile = new File(outputDirectory, "gitdetective.db")
-        dbFile.delete()
-        MVStore s = MVStore.open(dbFile.absolutePath)
+//        def dbFile = new File(importFile.parentFile, "gitdetective.db")
+//        dbFile.delete()
+//        MVStore s = MVStore.open(dbFile.absolutePath)
 
         def index = new KytheIndex()
+        index.kytheDirectory = kytheDirectory
         index.importFile = importFile
-        index.buildDirectory = new File("/tmp/stuff/otherproject-master/pom.xml").parentFile.absolutePath
         index.classes = new HashMap<>()//s.openMap("classes")
         index.definedFunctions = new HashSet<>()//s.openMap("functions")
         index.extractedNodes = new HashMap<>()//s.openMap("extractedNodes")
@@ -63,45 +64,44 @@ class KytheIndexExtractor {
                 it.preprocessKytheTriple(index, subject, predicate, object)
             }
         }
-        s.close()
+        //s.close()
 
         return index
     }
 
-    @SuppressWarnings("GrMethodMayBeStatic")
-    private void preprocessEntities(KytheIndex sourceUsage) {
-        sourceUsage.importFile.eachLine {
+    private static void preprocessEntities(KytheIndex index) {
+        index.importFile.eachLine {
             String[] row = ((it =~ triplesRegexPattern)[0] as String[]).drop(1)
-            def subjectUri = toUniversalUri(KytheURI.parse(row[0]))
-            sourceUsage.getExtractedNode(subjectUri).uri = subjectUri
+            def subjectUri = index.toUniversalUri(KytheURI.parse(row[0]))
+            index.getExtractedNode(subjectUri).uri = subjectUri
 
             def predicate = row[1]
             def object = row[2]
             if (predicate == "/kythe/node/kind" && object == "file") {
-                sourceUsage.definedFiles.add(sourceUsage.getQualifiedName(subjectUri, true))
+                index.definedFiles.add(index.getQualifiedName(subjectUri, true))
             }
             if ((predicate == "/kythe/node/kind" || predicate == "/kythe/subkind") && classTypes.contains(object)) {
                 def fileLocation = KytheURI.parse(row[0]).path
                 if (!fileLocation.isEmpty()) {
-                    sourceUsage.fileLocations.put(subjectUri.toString(), fileLocation)
+                    index.fileLocations.put(subjectUri.toString(), fileLocation)
                 }
             } else if (predicate == "/kythe/edge/defines/binding") {
-                def objectUri = toUniversalUri(KytheURI.parse(object))
-                sourceUsage.getExtractedNode(objectUri).uri = objectUri
-                sourceUsage.addBinding(subjectUri, objectUri)
+                def objectUri = index.toUniversalUri(KytheURI.parse(object))
+                index.getExtractedNode(objectUri).uri = objectUri
+                index.addBinding(subjectUri, objectUri)
             } else if (predicate == "/kythe/edge/childof") {
-                def objectUri = toUniversalUri(KytheURI.parse(object))
+                def objectUri = index.toUniversalUri(KytheURI.parse(object))
                 if (!objectUri.path.isEmpty()) {
-                    sourceUsage.getExtractedNode(objectUri).uri = objectUri
-                    def parentNode = sourceUsage.getExtractedNode(objectUri)
-                    sourceUsage.getExtractedNode(subjectUri).setParentNode(parentNode)
+                    index.getExtractedNode(objectUri).uri = objectUri
+                    def parentNode = index.getExtractedNode(objectUri)
+                    index.getExtractedNode(subjectUri).setParentNode(parentNode)
                 }
             } else if (predicate.startsWith("/kythe/edge/param.")) {
-                def objectUri = toUniversalUri(KytheURI.parse(object))
-                def extractedFunction = sourceUsage.getExtractedNode(subjectUri)
+                def objectUri = index.toUniversalUri(KytheURI.parse(object))
+                def extractedFunction = index.getExtractedNode(subjectUri)
                 extractedFunction.addParam(predicate.replace("/kythe/edge/param.", "") as int, objectUri)
             } else if (predicate == "/kythe/edge/named") {
-                def namedNode = sourceUsage.getExtractedNode(subjectUri)
+                def namedNode = index.getExtractedNode(subjectUri)
                 def className = object.substring(object.indexOf("#") + 1)
                 namedNode.context = className.substring(0, className.lastIndexOf(".") + 1)
                 namedNode.identifier = URLDecoder.decode(className.substring(className.lastIndexOf(".") + 1), "UTF-8")
@@ -135,12 +135,12 @@ class KytheIndexExtractor {
                 if (hasInitializer) {
                     //do nothing; need function definitions not function calls
                 } else if (!isFunction && isParam) {
-                    sourceUsage.paramToTypeMap.put(subjectUri.toString(), type)
+                    index.paramToTypeMap.put(subjectUri.toString(), type)
                 } else {
-                    sourceUsage.getExtractedNode(subjectUri).uri = subjectUri
-                    sourceUsage.getExtractedNode(subjectUri).context = context
-                    sourceUsage.getExtractedNode(subjectUri).identifier = identifier
-                    sourceUsage.getExtractedNode(subjectUri).isFunction = isFunction
+                    index.getExtractedNode(subjectUri).uri = subjectUri
+                    index.getExtractedNode(subjectUri).context = context
+                    index.getExtractedNode(subjectUri).identifier = identifier
+                    index.getExtractedNode(subjectUri).isFunction = isFunction
                 }
             }
         }
@@ -173,8 +173,8 @@ class KytheIndexExtractor {
     private static void processRecordEntity(String subject, String predicate, String object, KytheIndex index) {
         if (predicate == "/kythe/node/kind" || predicate == "/kythe/subkind") {
             if (classTypes.contains(object) || object == "function") {
-                if (!isJDK(subject)) {
-                    def subjectUri = toUniversalUri(KytheURI.parse(subject))
+                if (!index.isJDK(subject)) {
+                    def subjectUri = index.toUniversalUri(KytheURI.parse(subject))
                     if (classTypes.contains(object)) {
                         index.getExtractedNode(subjectUri).isFile = true
                         def fileLocation = subject.substring(subject.indexOf("path=") + 5)
@@ -194,7 +194,7 @@ class KytheIndexExtractor {
                 }
             }
         } else if (predicate == "/kythe/loc/start") {
-            def subjectUri = toUniversalUri(KytheURI.parse(subject))
+            def subjectUri = index.toUniversalUri(KytheURI.parse(subject))
             subjectUri = index.getBindedNode(subjectUri).uri
 
             if (index.sourceLocationMap.containsKey(subjectUri.signature)) {
@@ -204,7 +204,7 @@ class KytheIndexExtractor {
                 index.sourceLocationMap.put(subjectUri.signature, [Integer.parseInt(object), -1] as int[])
             }
         } else if (predicate == "/kythe/loc/end") {
-            def subjectUri = toUniversalUri(KytheURI.parse(subject))
+            def subjectUri = index.toUniversalUri(KytheURI.parse(subject))
             subjectUri = index.getBindedNode(subjectUri).uri
 
             if (index.sourceLocationMap.containsKey(subjectUri.signature)) {
@@ -217,8 +217,8 @@ class KytheIndexExtractor {
     }
 
     private static void processRecordRelationship(String subject, String predicate, String object, KytheIndex index) {
-        def subjectUriOriginal = toUniversalUri(KytheURI.parse(subject))
-        def objectUriOriginal = toUniversalUri(KytheURI.parse(object))
+        def subjectUriOriginal = index.toUniversalUri(KytheURI.parse(subject))
+        def objectUriOriginal = index.toUniversalUri(KytheURI.parse(object))
         def subjectNode = index.getParentNode(subjectUriOriginal)
         def objectNode = index.getParentNode(objectUriOriginal)
         if (subjectNode?.uri == null || objectNode?.uri == null) {
@@ -226,7 +226,7 @@ class KytheIndexExtractor {
         }
 
         if (predicate == "/kythe/edge/childof") {
-            if (isJDK(subjectNode.uri) || isJDK(objectNode.uri)) {
+            if (index.isJDK(subjectNode.uri) || index.isJDK(objectNode.uri)) {
                 return //no jdk
             } else if (!objectNode.isFile || !subjectNode.isFunction) {
                 return //todo: what are these?
@@ -234,7 +234,7 @@ class KytheIndexExtractor {
 
             def subjectUri = subjectNode.uri
             def qualifiedName = subjectNode.getQualifiedName(index)
-            def classQualifiedName = getQualifiedClassName(qualifiedName)
+            def classQualifiedName = index.getQualifiedClassName(qualifiedName)
             if (classQualifiedName.contains('$')) {
                 classQualifiedName = classQualifiedName.substring(0, classQualifiedName.indexOf('$'))
                 while (objectNode.parentNode?.isFile && objectNode.parentNode.uri != null
@@ -249,52 +249,6 @@ class KytheIndexExtractor {
                 log.info "Undefined function: " + qualifiedName
             }
         }
-    }
-
-    static KytheURI toUniversalUri(KytheURI uri) {
-        if (uri.corpus == "jdk") return uri
-        def indexerPath = KytheIndexBuilder.javacExtractor.absolutePath
-        if (uri.path.contains(indexerPath)) {
-            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
-                    uri.path
-                            .replaceAll(indexerPath + "!/", "")
-                            .replaceAll(indexerPath + "%21/", ""),
-                    uri.language)
-        }
-        if (uri.path.contains("src/main/") && !uri.language?.isEmpty()) {
-            def srcPath = "src/main/" + uri.language + "/"
-            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
-                    uri.path.substring(uri.path.indexOf(srcPath) + srcPath.length()), uri.language)
-        } else if ((uri.path =~ '(src/main/[^/]+/)').find()) {
-            String langPath = (uri.path =~ '(src/main/[^/]+/)')[0][0]
-            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
-                    uri.path.substring(uri.path.indexOf(langPath) + langPath.length()), uri.language)
-        }
-        if (uri.path.contains("target/classes/")) {
-            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
-                    uri.path.substring(uri.path.indexOf("target/classes/") + "target/classes/".length()), uri.language)
-        }
-        if (uri.path.contains(".jar!")) {
-            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
-                    uri.path.substring(uri.path.indexOf(".jar!") + 6), uri.language)
-        }
-        if (uri.path.endsWith(".class") && !uri.language?.isEmpty()) {
-            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
-                    uri.path.substring(0, uri.path.indexOf(".class")) + "." + uri.language, uri.language)
-        }
-        return uri
-    }
-
-    static boolean isJDK(String uri) {
-        return isJDK(toUniversalUri(KytheURI.parse(uri)))
-    }
-
-    static boolean isJDK(KytheURI uri) {
-        return uri.corpus == "jdk" ||
-                uri.path.startsWith("java/") ||
-                uri.path.startsWith("javax/") ||
-                uri.path.startsWith("sun/") ||
-                uri.path.startsWith("com/sun/")
     }
 
     private static String getType(MarkedSource markedSource) {
@@ -363,18 +317,5 @@ class KytheIndexExtractor {
             }
         }
         return context
-    }
-
-    static String getQualifiedClassName(String qualifiedName) {
-        if (!qualifiedName.contains('(')) {
-            return qualifiedName
-        }
-        def withoutArgs = qualifiedName.substring(0, qualifiedName.indexOf("("))
-        if (withoutArgs.contains("<")) {
-            withoutArgs = withoutArgs.substring(0, withoutArgs.indexOf("<"))
-            return withoutArgs.substring(withoutArgs.lastIndexOf("?") + 1, withoutArgs.lastIndexOf("."))
-        } else {
-            return withoutArgs.substring(withoutArgs.lastIndexOf("?") + 1, withoutArgs.lastIndexOf("."))
-        }
     }
 }

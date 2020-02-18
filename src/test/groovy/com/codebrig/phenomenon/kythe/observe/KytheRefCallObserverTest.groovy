@@ -1,12 +1,10 @@
-package com.codebrig.phenomenon.kythe
+package com.codebrig.phenomenon.kythe.observe
 
 import com.codebrig.arthur.observe.structure.filter.TypeFilter
 import com.codebrig.phenomena.Phenomena
-import com.codebrig.phenomena.code.CodeObserver
 import com.codebrig.phenomena.code.CodeObserverVisitor
-import com.codebrig.phenomena.code.structure.CodeStructureObserver
+import com.codebrig.phenomenon.kythe.KytheIndexObserver
 import com.codebrig.phenomenon.kythe.build.KytheIndexBuilder
-import com.codebrig.phenomenon.kythe.observe.KytheRefCallObserver
 import org.eclipse.jgit.api.Git
 import org.junit.Test
 
@@ -16,7 +14,7 @@ import java.util.stream.Collectors
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
-class TestClass {
+class KytheRefCallObserverTest {
 
     @Test
     void myProject() {
@@ -36,7 +34,9 @@ class TestClass {
         def kytheObservers = new ArrayList<KytheIndexObserver>()
         def refCallObserver = new KytheRefCallObserver()
         kytheObservers.add(refCallObserver)
-        def index = new KytheIndexBuilder(outDir).build(kytheObservers)
+        def index = new KytheIndexBuilder(outDir)
+                .setKytheOutputDirectory(outDir)
+                .build(kytheObservers)
 
         def phenomena = new Phenomena()
         phenomena.scanPath = new ArrayList<>()
@@ -69,7 +69,9 @@ class TestClass {
         def kytheObservers = new ArrayList<KytheIndexObserver>()
         def refCallObserver = new KytheRefCallObserver()
         kytheObservers.add(refCallObserver)
-        def index = new KytheIndexBuilder(outDir).build(kytheObservers)
+        def index = new KytheIndexBuilder(outDir)
+                .setKytheOutputDirectory(outDir)
+                .build(kytheObservers)
 
         def phenomena = new Phenomena()
         phenomena.scanPath = new ArrayList<>()

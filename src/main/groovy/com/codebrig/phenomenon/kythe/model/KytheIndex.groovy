@@ -1,5 +1,6 @@
 package com.codebrig.phenomenon.kythe.model
 
+import com.codebrig.phenomenon.kythe.build.KytheIndexBuilder
 import com.google.devtools.kythe.util.KytheURI
 import groovy.transform.Canonical
 import org.apache.commons.io.FilenameUtils
@@ -25,7 +26,7 @@ class KytheIndex {
     final Set<String> functionNameSet = new HashSet<>()
     final Set<String> definedFiles = new HashSet<>()
     File importFile
-    String buildDirectory
+    File kytheDirectory
 
     KytheNode getBindedNode(KytheURI uri) {
         def bindingStr = bindings.get(uri.signature, uri.toString())
@@ -91,6 +92,65 @@ class KytheIndex {
             }
         } else {
             return extractedNodes.get(uri.signature).getQualifiedName(this)
+        }
+    }
+
+    KytheURI toUniversalUri(KytheURI uri) {
+        if (uri.corpus == "jdk") return uri
+        def indexerPath = new File(kytheDirectory, KytheIndexBuilder.javacExtractorLocation).absolutePath
+        if (uri.path.contains(indexerPath)) {
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path
+                            .replaceAll(indexerPath + "!/", "")
+                            .replaceAll(indexerPath + "%21/", ""),
+                    uri.language)
+        }
+        if (uri.path.contains("src/main/") && !uri.language?.isEmpty()) {
+            def srcPath = "src/main/" + uri.language + "/"
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path.substring(uri.path.indexOf(srcPath) + srcPath.length()), uri.language)
+        } else if ((uri.path =~ '(src/main/[^/]+/)').find()) {
+            String langPath = (uri.path =~ '(src/main/[^/]+/)')[0][0]
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path.substring(uri.path.indexOf(langPath) + langPath.length()), uri.language)
+        }
+        if (uri.path.contains("target/classes/")) {
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path.substring(uri.path.indexOf("target/classes/") + "target/classes/".length()), uri.language)
+        }
+        if (uri.path.contains(".jar!")) {
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path.substring(uri.path.indexOf(".jar!") + 6), uri.language)
+        }
+        if (uri.path.endsWith(".class") && !uri.language?.isEmpty()) {
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path.substring(0, uri.path.indexOf(".class")) + "." + uri.language, uri.language)
+        }
+        return uri
+    }
+
+    boolean isJDK(String uri) {
+        return isJDK(toUniversalUri(KytheURI.parse(uri)))
+    }
+
+    static boolean isJDK(KytheURI uri) {
+        return uri.corpus == "jdk" ||
+                uri.path.startsWith("java/") ||
+                uri.path.startsWith("javax/") ||
+                uri.path.startsWith("sun/") ||
+                uri.path.startsWith("com/sun/")
+    }
+
+    static String getQualifiedClassName(String qualifiedName) {
+        if (!qualifiedName.contains('(')) {
+            return qualifiedName
+        }
+        def withoutArgs = qualifiedName.substring(0, qualifiedName.indexOf("("))
+        if (withoutArgs.contains("<")) {
+            withoutArgs = withoutArgs.substring(0, withoutArgs.indexOf("<"))
+            return withoutArgs.substring(withoutArgs.lastIndexOf("?") + 1, withoutArgs.lastIndexOf("."))
+        } else {
+            return withoutArgs.substring(withoutArgs.lastIndexOf("?") + 1, withoutArgs.lastIndexOf("."))
         }
     }
 }

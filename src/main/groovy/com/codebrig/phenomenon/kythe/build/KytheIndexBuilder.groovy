@@ -13,27 +13,46 @@ import org.zeroturnaround.exec.ProcessExecutor
  */
 class KytheIndexBuilder {
 
+    static final String javacWrapperLocation = "extractors/javac-wrapper.sh"
+    static final String javacExtractorLocation = "extractors/javac_extractor.jar"
+    static final String javaIndexerLocation = "indexers/java_indexer.jar"
+    static final String dedupStreamToolLocation = "tools/dedup_stream"
+    static final String triplesToolLocation = "tools/triples"
     private final File repositoryDirectory
-    static final File javacWrapper = new File("opt/kythe-v0.0.28/extractors/javac-wrapper.sh")
-    static final File javacExtractor = new File("opt/kythe-v0.0.28/extractors/javac_extractor.jar")
-    static final File javaIndexer = new File("opt/kythe-v0.0.28/indexers/java_indexer.jar")
-    static final File dedupStreamTool = new File("opt/kythe-v0.0.28/tools/dedup_stream")
-    static final File triplesTool = new File("opt/kythe-v0.0.28/tools/triples")
+    private File kytheDirectory = new File("opt/kythe-v0.0.28")
+    private File kytheOutputDirectory = new File((System.getProperty("os.name").toLowerCase().startsWith("mac"))
+            ? "/tmp" : System.getProperty("java.io.tmpdir"), "kythe-phenomenon")
 
-    //todo: use builder pattern?
     KytheIndexBuilder(File repositoryDirectory) {
         this.repositoryDirectory = Objects.requireNonNull(repositoryDirectory)
     }
 
+    KytheIndexBuilder setKytheDirectory(File kytheDirectory) {
+        this.kytheDirectory = Objects.requireNonNull(kytheDirectory)
+        return this
+    }
+
+    File getKytheDirectory() {
+        return kytheDirectory
+    }
+
+    KytheIndexBuilder setKytheOutputDirectory(File kytheOutputDirectory) {
+        this.kytheOutputDirectory = Objects.requireNonNull(kytheOutputDirectory)
+        return this
+    }
+
+    File getKytheOutputDirectory() {
+        return kytheOutputDirectory
+    }
+
     KytheIndex build(List<KytheIndexObserver> indexObservers) throws KytheIndexException {
-        def kytheDir = new File("/tmp/stuff/")
-        kytheDir.mkdirs()
+        kytheOutputDirectory.mkdirs()
 
         def mvnEnvironment = [
                 REAL_JAVAC            : "/usr/bin/javac",
                 KYTHE_ROOT_DIRECTORY  : repositoryDirectory.absolutePath,
-                KYTHE_OUTPUT_DIRECTORY: kytheDir.absolutePath,
-                JAVAC_EXTRACTOR_JAR   : javacExtractor.absolutePath
+                KYTHE_OUTPUT_DIRECTORY: kytheOutputDirectory.absolutePath,
+                JAVAC_EXTRACTOR_JAR   : new File(kytheDirectory, javacExtractorLocation).absolutePath
         ]
         def mvnCommand = [
                 "mvn",
@@ -44,7 +63,7 @@ class KytheIndexBuilder {
                 "-Dmaven.compiler.target=1.8",
                 "-Dmaven.compiler.fork=true",
                 "-Dmaven.compiler.forceJavacCompilerUse=true",
-                "-Dmaven.compiler.executable=" + javacWrapper.absolutePath
+                "-Dmaven.compiler.executable=" + new File(kytheDirectory, javacWrapperLocation).absolutePath
         ]
         def result = new ProcessExecutor()
                 .redirectOutput(System.out)
@@ -56,7 +75,7 @@ class KytheIndexBuilder {
             throw new KytheIndexException() //todo: fill in exception
         }
 
-        kytheDir.listFiles(new FilenameFilter() {
+        kytheOutputDirectory.listFiles(new FilenameFilter() {
             @Override
             boolean accept(File file, String s) {
                 return s.endsWith(".kindex")
@@ -64,17 +83,19 @@ class KytheIndexBuilder {
         }).each {
             processKytheIndexFile(it)
         }
-        return new KytheIndexExtractor(indexObservers).processIndexFile(new File("/tmp/stuff/done.txt"))
+        return new KytheIndexExtractor(kytheDirectory, indexObservers)
+                .processIndexFile(new File(kytheOutputDirectory, "kythe_phenomenon_triples"))
     }
 
-    private static void processKytheIndexFile(File importFile) {
-        def outputFile = new File("/tmp/stuff/done.txt")
+    private void processKytheIndexFile(File importFile) {
+        def outputFile = new File(kytheOutputDirectory, "kythe_phenomenon_triples")
         def indexCommand = [
                 "/bin/sh",
                 "-c",
-                "java -Xbootclasspath/p:" + javaIndexer.absolutePath +
+                "java -Xbootclasspath/p:" + new File(kytheDirectory, javaIndexerLocation).absolutePath +
                         " com.google.devtools.kythe.analyzers.java.JavaIndexer " + importFile.absolutePath + " | " +
-                        dedupStreamTool.absolutePath + " | " + triplesTool.absolutePath +
+                        new File(kytheDirectory, dedupStreamToolLocation).absolutePath + " | " +
+                        new File(kytheDirectory, triplesToolLocation).absolutePath +
                         " >> " + outputFile.absolutePath
         ]
 

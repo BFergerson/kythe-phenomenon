@@ -44,8 +44,8 @@ class KytheRefCallObserver extends KytheIndexObserver {
     @Override
     void preprocessKytheTriple(KytheIndex index, String subject, String predicate, String object) {
         if (predicate == "/kythe/edge/ref/call") {
-            def subjectUriOriginal = KytheIndexExtractor.toUniversalUri(KytheURI.parse(subject))
-            def objectUriOriginal = KytheIndexExtractor.toUniversalUri(KytheURI.parse(object))
+            def subjectUriOriginal = index.toUniversalUri(KytheURI.parse(subject))
+            def objectUriOriginal = index.toUniversalUri(KytheURI.parse(object))
             def subjectNode = index.getParentNode(subjectUriOriginal)
             def objectNode = index.getParentNode(objectUriOriginal)
 
@@ -60,7 +60,7 @@ class KytheRefCallObserver extends KytheIndexObserver {
                 location = [-1, -1] //no code location
             }
 
-            if (KytheIndexExtractor.isJDK(subjectNode.uri) || KytheIndexExtractor.isJDK(objectNode.uri)) {
+            if (index.isJDK(subjectNode.uri) || index.isJDK(objectNode.uri)) {
                 return //no jdk
             } else if ((!(subjectNode.isFile || subjectNode.isFunction)) || !objectNode.isFunction) {
                 return //todo: what are these?
