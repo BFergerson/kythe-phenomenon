@@ -95,9 +95,9 @@ class KytheRefCallObserverTest {
         assertEquals(2, mainMethodReferences.size())
         assertEquals(2, mainMethodReferences.get(0).attributes.size())
         assertTrue(["com.gitdetective.MyClass.myMethod()", "com.google.common.collect.Lists.newArrayList()"].contains(
-                mainMethodReferences.get(0).attributes.get("called_qualified_name")))
+                mainMethodReferences.get(0).attributes.get("calledQualifiedName")))
         assertTrue(["com.gitdetective.MyClass.myMethod()", "com.google.common.collect.Lists.newArrayList()"].contains(
-                mainMethodReferences.get(1).attributes.get("called_qualified_name")))
+                mainMethodReferences.get(1).attributes.get("calledQualifiedName")))
 
         def anotherOneMethodReferences = observedNodes.findAll {
             it.internalType == "MethodInvocation" &&
@@ -107,6 +107,6 @@ class KytheRefCallObserverTest {
         assertEquals(1, anotherOneMethodReferences.size())
         assertEquals(2, anotherOneMethodReferences.get(0).attributes.size())
         assertEquals("com.gitdetective.MyClass.myMethod2()",
-                anotherOneMethodReferences.get(0).attributes.get("called_qualified_name"))
+                anotherOneMethodReferences.get(0).attributes.get("calledQualifiedName"))
     }
 }

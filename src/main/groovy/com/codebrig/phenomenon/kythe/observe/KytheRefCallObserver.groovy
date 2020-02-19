@@ -5,9 +5,10 @@ import com.codebrig.arthur.observe.structure.filter.FunctionFilter
 import com.codebrig.arthur.observe.structure.filter.TypeFilter
 import com.codebrig.phenomena.code.ContextualNode
 import com.codebrig.phenomenon.kythe.KytheIndexObserver
-import com.codebrig.phenomenon.kythe.build.KytheIndexExtractor
 import com.codebrig.phenomenon.kythe.model.KytheIndex
 import com.codebrig.phenomenon.kythe.model.KytheReferenceCall
+import com.google.common.base.Charsets
+import com.google.common.io.Resources
 import com.google.devtools.kythe.util.KytheURI
 import groovy.util.logging.Slf4j
 
@@ -34,8 +35,8 @@ class KytheRefCallObserver extends KytheIndexObserver {
                 def refCall = functionRefCalls.get(callPosition)
                 if (refCall != null) {
                     def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
-                    methodCallNode.hasAttribute("called_qualified_name", refCall.calledQualifiedName)
-                    methodCallNode.hasAttribute("called_uri", refCall.calledUri.toString())
+                    methodCallNode.hasAttribute("calledQualifiedName", refCall.calledQualifiedName)
+                    methodCallNode.hasAttribute("calledUri", refCall.calledUri.toString())
                 }
             }
         }
@@ -89,5 +90,10 @@ class KytheRefCallObserver extends KytheIndexObserver {
     @Override
     StructureFilter getFilter() {
         return FUNCTION_FILTER
+    }
+
+    @Override
+    String getSchema() {
+        return Resources.toString(Resources.getResource("schema/external-reference-schema.gql"), Charsets.UTF_8)
     }
 }
