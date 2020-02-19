@@ -24,11 +24,11 @@ class KytheRefCallObserver extends KytheIndexObserver {
 
     private static final FunctionFilter FUNCTION_FILTER = new FunctionFilter()
     private static final TypeFilter FUNCTION_CALL_FILTER = new TypeFilter("MethodInvocation") //todo: language agnostic
-    private Map<String, Map<String, KytheReferenceCall>> referenceCalls = new HashMap<>()
+    private final Map<String, Map<String, KytheReferenceCall>> referenceCalls = new HashMap<>()
 
     @Override
     void applyObservation(ContextualNode node, ContextualNode parentNode) {
-        def functionRefCalls = referenceCalls.get(node.name)
+        def functionRefCalls = referenceCalls.remove(node.name)
         if (functionRefCalls != null) {
             FUNCTION_CALL_FILTER.getFilteredNodes(node).each {
                 def callPosition = it.underlyingNode.startPosition.offset() + "," + it.underlyingNode.endPosition.offset()
