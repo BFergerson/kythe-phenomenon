@@ -1,6 +1,5 @@
 package com.codebrig.phenomenon.kythe.observe
 
-import com.codebrig.arthur.observe.structure.filter.TypeFilter
 import com.codebrig.phenomena.Phenomena
 import com.codebrig.phenomena.code.CodeObserverVisitor
 import com.codebrig.phenomenon.kythe.KytheIndexObserver
@@ -11,8 +10,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.*
 
 class KytheRefCallObserverTest {
 
@@ -32,8 +30,7 @@ class KytheRefCallObserverTest {
                 .call()
 
         def kytheObservers = new ArrayList<KytheIndexObserver>()
-        def refCallObserver = new KytheRefCallObserver()
-        kytheObservers.add(refCallObserver)
+        kytheObservers.add(new KytheRefCallObserver())
         def index = new KytheIndexBuilder(outDir)
                 .setKytheOutputDirectory(outDir)
                 .build(kytheObservers)
@@ -48,7 +45,10 @@ class KytheRefCallObserverTest {
         phenomena.processScanPath().collect(Collectors.toList())
         phenomena.close()
 
-        assertEquals(0, refCallObserver.functionCalls.size())
+        def observedNodes = visitor.getObservedContextualNodes()
+        assertEquals(10, observedNodes.size())
+        assertEquals(10, observedNodes.findAll { it.internalType == "MethodDeclaration" }.size())
+        assertEquals(0, observedNodes.findAll { it.internalType == "MethodInvocation" }.size())
     }
 
     @Test
@@ -67,8 +67,7 @@ class KytheRefCallObserverTest {
                 .call()
 
         def kytheObservers = new ArrayList<KytheIndexObserver>()
-        def refCallObserver = new KytheRefCallObserver()
-        kytheObservers.add(refCallObserver)
+        kytheObservers.add(new KytheRefCallObserver())
         def index = new KytheIndexBuilder(outDir)
                 .setKytheOutputDirectory(outDir)
                 .build(kytheObservers)
@@ -83,25 +82,31 @@ class KytheRefCallObserverTest {
         phenomena.processScanPath().collect(Collectors.toList())
         phenomena.close()
 
-        assertEquals(3, refCallObserver.functionCalls.size())
-        def myMethodCallers = refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod()")
-        assertNotNull(myMethodCallers)
-        assertEquals(1, myMethodCallers.size())
-        assertEquals("com.gitdetective.App2.main(java.lang.String[])",
-                new TypeFilter("MethodDeclaration")
-                        .getFilteredNodes(myMethodCallers.get(0), false).next().name)
+        def observedNodes = visitor.getObservedContextualNodes()
+        assertEquals(5, observedNodes.size())
+        assertEquals(2, observedNodes.findAll { it.internalType == "MethodDeclaration" }.size())
+        assertEquals(3, observedNodes.findAll { it.internalType == "MethodInvocation" }.size())
 
-        def myMethod2Callers = refCallObserver.functionCalls.get("com.gitdetective.MyClass.myMethod2()")
-        assertNotNull(myMethod2Callers)
-        assertEquals(1, myMethod2Callers.size())
-        assertEquals("com.gitdetective.App2.anotherOne(java.lang.String,int)",
-                new TypeFilter("MethodDeclaration")
-                        .getFilteredNodes(myMethod2Callers.get(0), false).next().name)
+        def mainMethodReferences = observedNodes.findAll {
+            it.internalType == "MethodInvocation" &&
+                    it.parentSourceNode.name == "com.gitdetective.App2.main(java.lang.String[])"
+        }.toList()
+        assertNotNull(mainMethodReferences)
+        assertEquals(2, mainMethodReferences.size())
+        assertEquals(2, mainMethodReferences.get(0).attributes.size())
+        assertTrue(["com.gitdetective.MyClass.myMethod()", "com.google.common.collect.Lists.newArrayList()"].contains(
+                mainMethodReferences.get(0).attributes.get("called_qualified_name")))
+        assertTrue(["com.gitdetective.MyClass.myMethod()", "com.google.common.collect.Lists.newArrayList()"].contains(
+                mainMethodReferences.get(1).attributes.get("called_qualified_name")))
 
-        def newArrayListCallers = refCallObserver.functionCalls.get("com.google.common.collect.Lists.newArrayList()")
-        assertNotNull(newArrayListCallers)
-        assertEquals("com.gitdetective.App2.main(java.lang.String[])",
-                new TypeFilter("MethodDeclaration")
-                        .getFilteredNodes(newArrayListCallers.get(0), false).next().name)
+        def anotherOneMethodReferences = observedNodes.findAll {
+            it.internalType == "MethodInvocation" &&
+                    it.parentSourceNode.name == "com.gitdetective.App2.anotherOne(java.lang.String,int)"
+        }.toList()
+        assertNotNull(anotherOneMethodReferences)
+        assertEquals(1, anotherOneMethodReferences.size())
+        assertEquals(2, anotherOneMethodReferences.get(0).attributes.size())
+        assertEquals("com.gitdetective.MyClass.myMethod2()",
+                anotherOneMethodReferences.get(0).attributes.get("called_qualified_name"))
     }
 }

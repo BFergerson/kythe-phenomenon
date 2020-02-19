@@ -24,7 +24,6 @@ class KytheRefCallObserver extends KytheIndexObserver {
     private static final FunctionFilter FUNCTION_FILTER = new FunctionFilter()
     private static final TypeFilter FUNCTION_CALL_FILTER = new TypeFilter("MethodInvocation") //todo: language agnostic
     private Map<String, Map<String, KytheReferenceCall>> referenceCalls = new HashMap<>()
-    private Map<String, List<ContextualNode>> functionCalls = new HashMap<>()
 
     @Override
     void applyObservation(ContextualNode node, ContextualNode parentNode) {
@@ -34,8 +33,9 @@ class KytheRefCallObserver extends KytheIndexObserver {
                 def callPosition = it.underlyingNode.startPosition.offset() + "," + it.underlyingNode.endPosition.offset()
                 def refCall = functionRefCalls.get(callPosition)
                 if (refCall != null) {
-                    functionCalls.putIfAbsent(refCall.calledQualifiedName, new ArrayList<>())
-                    functionCalls.get(refCall.calledQualifiedName).add(codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile))
+                    def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
+                    methodCallNode.hasAttribute("called_qualified_name", refCall.calledQualifiedName)
+                    methodCallNode.hasAttribute("called_uri", refCall.calledUri.toString())
                 }
             }
         }
@@ -84,10 +84,6 @@ class KytheRefCallObserver extends KytheIndexObserver {
             referenceCalls.putIfAbsent(subjectQualifiedName, new HashMap<>())
             referenceCalls.get(subjectQualifiedName).put(refCall.callSourceLocation[0] + "," + refCall.callSourceLocation[1], refCall)
         }
-    }
-
-    Map<String, List<ContextualNode>> getFunctionCalls() {
-        return functionCalls
     }
 
     @Override
