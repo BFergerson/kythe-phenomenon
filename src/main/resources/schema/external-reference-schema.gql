@@ -1,7 +1,11 @@
 define
 
-calledQualifiedName sub attribute, datatype long;
-calledUri sub attribute, datatype long;
+calledQualifiedName sub attribute, datatype string;
+calledUri sub attribute, datatype string;
+kytheUri sub attribute, datatype string;
+
+JavaMethodDeclaration
+    has kytheUri;
 
 JavaMethodInvocation
     has calledQualifiedName,

@@ -37,6 +37,7 @@ class KytheRefCallObserver extends KytheIndexObserver {
                     def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
                     methodCallNode.hasAttribute("calledQualifiedName", refCall.calledQualifiedName)
                     methodCallNode.hasAttribute("calledUri", refCall.calledUri.toString())
+                    node.hasAttribute("kytheUri", refCall.callerUri)
                 }
             }
         }
