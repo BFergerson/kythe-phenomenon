@@ -83,8 +83,13 @@ class KytheIndexBuilder {
         }).each {
             processKytheIndexFile(it)
         }
-        return new KytheIndexExtractor(kytheDirectory, indexObservers)
+
+        def kytheIndex = new KytheIndexExtractor(kytheDirectory, indexObservers)
                 .processIndexFile(new File(kytheOutputDirectory, "kythe_phenomenon_triples"))
+        indexObservers.each {
+            it.setKytheIndex(kytheIndex)
+        }
+        return kytheIndex
     }
 
     private void processKytheIndexFile(File importFile) {

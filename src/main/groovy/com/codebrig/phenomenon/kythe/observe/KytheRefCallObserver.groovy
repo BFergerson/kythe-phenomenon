@@ -28,6 +28,8 @@ class KytheRefCallObserver extends KytheIndexObserver {
 
     @Override
     void applyObservation(ContextualNode node, ContextualNode parentNode) {
+        node.hasAttribute("kytheUri", kytheIndex.definedFunctions.get(node.name))
+
         def functionRefCalls = referenceCalls.remove(node.name)
         if (functionRefCalls != null) {
             FUNCTION_CALL_FILTER.getFilteredNodes(node).each {
@@ -37,7 +39,6 @@ class KytheRefCallObserver extends KytheIndexObserver {
                     def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
                     methodCallNode.hasAttribute("calledQualifiedName", refCall.calledQualifiedName)
                     methodCallNode.hasAttribute("calledUri", refCall.calledUri.toString())
-                    node.hasAttribute("kytheUri", refCall.callerUri.toString())
                 }
             }
         }
@@ -66,14 +67,15 @@ class KytheRefCallObserver extends KytheIndexObserver {
                 return //no jdk
             } else if ((!(subjectNode.isFile || subjectNode.isFunction)) || !objectNode.isFunction) {
                 return //todo: what are these?
-            } else if (index.definedFunctions.contains(objectNode.uri)) {
-                return // internal function call
             }
 
             def subjectUri = subjectNode.uri
             def objectUri = objectNode.uri
             def subjectQualifiedName = subjectNode.getQualifiedName(index)
             def objectQualifiedName = objectNode.getQualifiedName(index)
+            if (index.definedFunctions.containsKey(objectQualifiedName)) {
+                return // internal function call
+            }
             log.info subjectQualifiedName + " calls " + objectQualifiedName
 
             def fileLocation = index.fileLocations.get(subjectUri.toString())

@@ -7,7 +7,6 @@ import com.google.common.collect.Sets
 import com.google.devtools.kythe.proto.MarkedSource
 import com.google.devtools.kythe.util.KytheURI
 import groovy.util.logging.Slf4j
-import org.h2.mvstore.MVStore
 
 /**
  * todo: description
@@ -35,15 +34,11 @@ class KytheIndexExtractor {
     }
 
     KytheIndex processIndexFile(File importFile) {
-//        def dbFile = new File(importFile.parentFile, "gitdetective.db")
-//        dbFile.delete()
-//        MVStore s = MVStore.open(dbFile.absolutePath)
-
         def index = new KytheIndex()
         index.kytheDirectory = kytheDirectory
         index.importFile = importFile
         index.classes = new HashMap<>()//s.openMap("classes")
-        index.definedFunctions = new HashSet<>()//s.openMap("functions")
+        index.definedFunctions = new HashMap<>()//s.openMap("functions")
         index.extractedNodes = new HashMap<>()//s.openMap("extractedNodes")
         index.bindings = new HashMap<>()//s.openMap("bindings")
         index.paramToTypeMap = new HashMap<>()//s.openMap("paramToTypeMap")
@@ -64,7 +59,6 @@ class KytheIndexExtractor {
                 it.preprocessKytheTriple(index, subject, predicate, object)
             }
         }
-        //s.close()
 
         return index
     }
@@ -244,7 +238,7 @@ class KytheIndexExtractor {
             }
             if (index.definedFiles.contains(classQualifiedName)) {
                 log.info "Defined function: " + qualifiedName
-                index.definedFunctions.add(subjectUri)
+                index.definedFunctions.put(qualifiedName, subjectUri)
             } else {
                 log.info "Undefined function: " + qualifiedName
             }

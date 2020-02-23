@@ -11,5 +11,16 @@ import com.codebrig.phenomenon.kythe.model.KytheIndex
  * @author <a href="mailto:brandon@srcpl.us">Brandon Fergerson</a>
  */
 abstract class KytheIndexObserver extends CodeObserver {
+
+    private KytheIndex kytheIndex
+
+    void setKytheIndex(KytheIndex kytheIndex) {
+        this.kytheIndex = kytheIndex
+    }
+
+    KytheIndex getKytheIndex() {
+        return kytheIndex
+    }
+
     abstract void preprocessKytheTriple(KytheIndex index, String subject, String predicate, String object)
 }
