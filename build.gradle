@@ -21,7 +21,7 @@ dependencies {
 
     compile 'org.codehaus.groovy:groovy-all:2.4.15'
     compile 'com.github.codebrig:arthur:a55a5d6302'
-    compile 'com.github.codebrig:phenomena:5f865f4b15'
+    compile 'com.github.codebrig:phenomena:aa7b317ccf'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation 'org.zeroturnaround:zt-exec:1.10'
     implementation 'com.h2database:h2:1.4.197'
