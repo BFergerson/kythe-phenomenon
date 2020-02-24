@@ -72,7 +72,9 @@ class KytheIndexExtractor {
             def predicate = row[1]
             def object = row[2]
             if (predicate == "/kythe/node/kind" && object == "file") {
-                index.definedFiles.add(index.getQualifiedName(subjectUri, true))
+                def definedFile = index.getQualifiedName(subjectUri, true)
+                index.definedFiles.add(definedFile)
+                log.info("Defined file: " + definedFile)
             }
             if ((predicate == "/kythe/node/kind" || predicate == "/kythe/subkind") && classTypes.contains(object)) {
                 def fileLocation = KytheURI.parse(row[0]).path
@@ -240,7 +242,7 @@ class KytheIndexExtractor {
                 log.info "Defined function: " + qualifiedName
                 index.definedFunctions.put(qualifiedName, subjectUri)
             } else {
-                log.info "Undefined function: " + qualifiedName
+                log.warn "Undefined function: $qualifiedName - Could not find file definition: $classQualifiedName"
             }
         }
     }

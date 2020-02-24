@@ -56,7 +56,7 @@ class KytheIndexBuilder {
         ]
         def mvnCommand = [
                 "mvn",
-                "clean",
+                "install",
                 "compile",
                 "-Dmaven.test.skip=true",
                 "-Dmaven.compiler.source=1.8",
