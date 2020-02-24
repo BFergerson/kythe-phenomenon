@@ -28,7 +28,7 @@ class KytheRefCallObserver extends KytheIndexObserver {
 
     @Override
     void applyObservation(ContextualNode node, ContextualNode parentNode) {
-        node.hasAttribute("kytheUri", kytheIndex.definedFunctions.get(node.name))
+        node.hasAttribute("kytheUri", kytheIndex.definedFunctions.get(node.name).toString())
 
         def functionRefCalls = referenceCalls.remove(node.name)
         if (functionRefCalls != null) {
