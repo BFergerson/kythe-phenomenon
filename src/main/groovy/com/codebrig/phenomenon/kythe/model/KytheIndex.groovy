@@ -82,9 +82,7 @@ class KytheIndex {
 
     String getQualifiedName(KytheURI uri, boolean isClass) {
         if (isClass) {
-            def qualifiedName = FilenameUtils.removeExtension(uri.path.replace("src/main/" + uri.path.substring(
-                    uri.path.lastIndexOf(".") + 1) + "/", ""))
-                    .replace("/", ".")
+            def qualifiedName = FilenameUtils.removeExtension(uri.path).replace("/", ".")
             if (qualifiedName.contains("#")) {
                 return qualifiedName.substring(0, qualifiedName.indexOf("#"))
             } else {
@@ -113,6 +111,10 @@ class KytheIndex {
             String langPath = (uri.path =~ '(src/main/[^/]+/)')[0][0]
             uri = new KytheURI(uri.signature, uri.corpus, uri.root,
                     uri.path.substring(uri.path.indexOf(langPath) + langPath.length()), uri.language)
+        } else if (uri.path.contains("src/")) {
+            def srcPath = "src/"
+            uri = new KytheURI(uri.signature, uri.corpus, uri.root,
+                    uri.path.substring(uri.path.indexOf(srcPath) + srcPath.length()), uri.language)
         }
         if (uri.path.contains("target/classes/")) {
             uri = new KytheURI(uri.signature, uri.corpus, uri.root,
