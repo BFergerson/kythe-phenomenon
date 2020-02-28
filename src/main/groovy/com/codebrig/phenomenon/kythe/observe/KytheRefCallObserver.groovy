@@ -12,6 +12,8 @@ import com.google.common.io.Resources
 import com.google.devtools.kythe.util.KytheURI
 import groovy.util.logging.Slf4j
 
+import static java.util.Objects.*
+
 /**
  * todo: description
  *
@@ -46,8 +48,8 @@ class KytheRefCallObserver extends KytheIndexObserver {
                     def refCall = functionRefCalls.get(callPosition)
                     if (refCall != null) {
                         def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
-                        methodCallNode.hasAttribute("calledQualifiedName", refCall.calledQualifiedName)
-                        methodCallNode.hasAttribute("calledUri", refCall.calledUri.toString())
+                        methodCallNode.hasAttribute("calledQualifiedName", requireNonNull(refCall.calledQualifiedName))
+                        methodCallNode.hasAttribute("calledUri", requireNonNull(refCall.calledUri).toString())
                     }
                 }
             }
@@ -90,7 +92,7 @@ class KytheRefCallObserver extends KytheIndexObserver {
 
             def fileLocation = index.fileLocations.get(subjectUri.toString())
             if (fileLocation == null) {
-                fileLocation = Objects.requireNonNull(index.fileLocations.get(subjectNode.parentNode.uri.toString()))
+                fileLocation = requireNonNull(index.fileLocations.get(subjectNode.parentNode.uri.toString()))
             }
 
             def refCall = new KytheReferenceCall(subjectUri, subjectQualifiedName,
