@@ -239,7 +239,7 @@ class KytheIndexExtractor {
                 }
             }
             if (index.definedFiles.contains(classQualifiedName)) {
-                log.info "Defined function: " + qualifiedName
+                log.debug "Defined function: " + qualifiedName
                 index.definedFunctions.put(qualifiedName, subjectUri)
             } else {
                 log.warn "Undefined function: $qualifiedName - Could not find file definition: $classQualifiedName"

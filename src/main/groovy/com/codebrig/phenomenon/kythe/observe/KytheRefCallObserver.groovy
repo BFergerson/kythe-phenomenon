@@ -30,18 +30,25 @@ class KytheRefCallObserver extends KytheIndexObserver {
     void applyObservation(ContextualNode node, ContextualNode parentNode) {
         if (!node.hasName()) {
             log.error("Node missing name: " + node)
+            return
         }
-        node.hasAttribute("kytheUri", kytheIndex.definedFunctions.get(node.name).toString())
 
-        def functionRefCalls = referenceCalls.remove(node.name)
-        if (functionRefCalls != null) {
-            FUNCTION_CALL_FILTER.getFilteredNodes(node).each {
-                def callPosition = it.underlyingNode.startPosition.offset() + "," + it.underlyingNode.endPosition.offset()
-                def refCall = functionRefCalls.get(callPosition)
-                if (refCall != null) {
-                    def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
-                    methodCallNode.hasAttribute("calledQualifiedName", refCall.calledQualifiedName)
-                    methodCallNode.hasAttribute("calledUri", refCall.calledUri.toString())
+        def declarationUri = kytheIndex.definedFunctions.get(node.name)
+        if (declarationUri == null) {
+            log.error("Node missing uri: " + node.name)
+        } else {
+            node.hasAttribute("kytheUri", declarationUri.toString())
+
+            def functionRefCalls = referenceCalls.remove(node.name)
+            if (functionRefCalls != null) {
+                FUNCTION_CALL_FILTER.getFilteredNodes(node).each {
+                    def callPosition = it.underlyingNode.startPosition.offset() + "," + it.underlyingNode.endPosition.offset()
+                    def refCall = functionRefCalls.get(callPosition)
+                    if (refCall != null) {
+                        def methodCallNode = codeObserverVisitor.getOrCreateContextualNode(it, node.sourceFile)
+                        methodCallNode.hasAttribute("calledQualifiedName", refCall.calledQualifiedName)
+                        methodCallNode.hasAttribute("calledUri", refCall.calledUri.toString())
+                    }
                 }
             }
         }
@@ -79,7 +86,7 @@ class KytheRefCallObserver extends KytheIndexObserver {
             if (index.definedFunctions.containsKey(objectQualifiedName)) {
                 return // internal function call
             }
-            log.info subjectQualifiedName + " calls " + objectQualifiedName
+            log.debug subjectQualifiedName + " calls " + objectQualifiedName
 
             def fileLocation = index.fileLocations.get(subjectUri.toString())
             if (fileLocation == null) {

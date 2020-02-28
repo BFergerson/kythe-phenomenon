@@ -8,4 +8,19 @@ package com.codebrig.phenomenon.kythe.build
  * @author <a href="mailto:brandon@srcpl.us">Brandon Fergerson</a>
  */
 class KytheIndexException extends Exception {
+
+    KytheIndexException() {
+    }
+
+    KytheIndexException(String message) {
+        super(message)
+    }
+
+    KytheIndexException(String message, Throwable cause) {
+        super(message, cause)
+    }
+
+    KytheIndexException(Throwable cause) {
+        super(cause)
+    }
 }
