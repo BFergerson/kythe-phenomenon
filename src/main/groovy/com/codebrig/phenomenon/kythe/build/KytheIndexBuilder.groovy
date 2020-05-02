@@ -65,13 +65,15 @@ class KytheIndexBuilder {
                 new File(kytheDirectory, runExtractorLocation).absolutePath +
                         " maven -javac_wrapper " +
                         new File(kytheDirectory, javacWrapperLocation).absolutePath +
-                        " && find /tmp/stuff -name '*.kzip' | xargs -L1 java -Xbootclasspath/p:" +
+                        " && find " +
+                        kytheOutputDirectory.absolutePath +
+                        " -name '*.kzip' | xargs -L1 java -Xbootclasspath/p:" +
                         new File(kytheDirectory, javac9Location).absolutePath +
                         " -jar " +
                         new File(kytheDirectory, javaIndexerLocation).absolutePath + " | " +
                         new File(kytheDirectory, dedupStreamToolLocation).absolutePath + " | " +
                         new File(kytheDirectory, triplesToolLocation).absolutePath + " >> " +
-                        new File(kytheOutputDirectory, "kythe_phenomenon_triples")
+                        new File(kytheOutputDirectory, "kythe_phenomenon_triples").absolutePath
         ]
         def result = new ProcessExecutor()
                 .redirectOutput(System.out)
