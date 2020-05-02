@@ -62,16 +62,16 @@ class KytheIndexBuilder {
         def mvnCommand = [
                 "/bin/sh",
                 "-c",
-                '''
-/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/tools/runextractor maven \\
--javac_wrapper /home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/extractors/javac-wrapper.sh && \\
-find /tmp/stuff -name '*.kzip' | \\
-xargs -L1 java -Xbootclasspath/p:/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/javac-9+181-r4173-1.jar \\
--jar /home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/indexers/java_indexer.jar | \\
-/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/tools/dedup_stream | \\
-/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/tools/triples >> \\
-/tmp/stuff/kythe_phenomenon_triples
-'''
+                new File(kytheDirectory, runExtractorLocation).absolutePath +
+                        " maven -javac_wrapper " +
+                        new File(kytheDirectory, javacWrapperLocation).absolutePath +
+                        " && find /tmp/stuff -name '*.kzip' | xargs -L1 java -Xbootclasspath/p:" +
+                        new File(kytheDirectory, javac9Location).absolutePath +
+                        " -jar " +
+                        new File(kytheDirectory, javaIndexerLocation).absolutePath + " | " +
+                        new File(kytheDirectory, dedupStreamToolLocation).absolutePath + " | " +
+                        new File(kytheDirectory, triplesToolLocation).absolutePath + " >> " +
+                        new File(kytheOutputDirectory, "kythe_phenomenon_triples")
         ]
         def result = new ProcessExecutor()
                 .redirectOutput(System.out)
