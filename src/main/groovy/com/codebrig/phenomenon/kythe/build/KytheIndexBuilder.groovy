@@ -18,8 +18,10 @@ class KytheIndexBuilder {
     static final String javaIndexerLocation = "indexers/java_indexer.jar"
     static final String dedupStreamToolLocation = "tools/dedup_stream"
     static final String triplesToolLocation = "tools/triples"
+    static final String runExtractorLocation = "tools/runextractor"
+    static final String javac9Location = "javac-9+181-r4173-1.jar"
     private final File repositoryDirectory
-    private File kytheDirectory = new File("opt/kythe-v0.0.28")
+    private File kytheDirectory = new File("opt/kythe-v0.0.44-a596810")
     private File kytheOutputDirectory = new File((System.getProperty("os.name").toLowerCase().startsWith("mac"))
             ? "/tmp" : System.getProperty("java.io.tmpdir"), "kythe-phenomenon")
 
@@ -49,21 +51,27 @@ class KytheIndexBuilder {
         kytheOutputDirectory.mkdirs()
 
         def mvnEnvironment = [
-                REAL_JAVAC            : "/usr/bin/javac",
-                KYTHE_ROOT_DIRECTORY  : repositoryDirectory.absolutePath,
-                KYTHE_OUTPUT_DIRECTORY: kytheOutputDirectory.absolutePath,
-                JAVAC_EXTRACTOR_JAR   : new File(kytheDirectory, javacExtractorLocation).absolutePath
+                REAL_JAVAC                : "/usr/bin/javac",
+                KYTHE_CORPUS              : "kythe",
+                KYTHE_ROOT_DIRECTORY      : repositoryDirectory.absolutePath,
+                KYTHE_OUTPUT_DIRECTORY    : kytheOutputDirectory.absolutePath,
+                JAVAC_EXTRACTOR_JAR       : new File(kytheDirectory, javacExtractorLocation).absolutePath,
+                KYTHE_JAVA_RUNTIME_OPTIONS: "-Xbootclasspath/p:" + new File(kytheDirectory, javac9Location).absolutePath,
+                KYTHE_OUTPUT_FILE         : new File(kytheOutputDirectory, "kythe_done.kzip").absolutePath
         ]
         def mvnCommand = [
-                "mvn",
-                "install",
-                "compile",
-                "-Dmaven.test.skip=true",
-                "-Dmaven.compiler.source=1.8",
-                "-Dmaven.compiler.target=1.8",
-                "-Dmaven.compiler.fork=true",
-                "-Dmaven.compiler.forceJavacCompilerUse=true",
-                "-Dmaven.compiler.executable=" + new File(kytheDirectory, javacWrapperLocation).absolutePath
+                "/bin/sh",
+                "-c",
+                '''
+/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/tools/runextractor maven \\
+-javac_wrapper /home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/extractors/javac-wrapper.sh && \\
+find /tmp/stuff -name '*.kzip' | \\
+xargs -L1 java -Xbootclasspath/p:/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/javac-9+181-r4173-1.jar \\
+-jar /home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/indexers/java_indexer.jar | \\
+/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/tools/dedup_stream | \\
+/home/brandon/IdeaProjects/kythe-phenomenon/opt/kythe-v0.0.44-a596810/tools/triples >> \\
+/tmp/stuff/kythe_phenomenon_triples
+'''
         ]
         def result = new ProcessExecutor()
                 .redirectOutput(System.out)
@@ -75,41 +83,11 @@ class KytheIndexBuilder {
             throw new KytheIndexException() //todo: fill in exception
         }
 
-        kytheOutputDirectory.listFiles(new FilenameFilter() {
-            @Override
-            boolean accept(File file, String s) {
-                return s.endsWith(".kindex")
-            }
-        }).each {
-            processKytheIndexFile(it)
-        }
-
         def kytheIndex = new KytheIndexExtractor(kytheDirectory, indexObservers)
                 .processIndexFile(new File(kytheOutputDirectory, "kythe_phenomenon_triples"))
         indexObservers.each {
             it.setKytheIndex(kytheIndex)
         }
         return kytheIndex
-    }
-
-    private void processKytheIndexFile(File importFile) {
-        def outputFile = new File(kytheOutputDirectory, "kythe_phenomenon_triples")
-        def indexCommand = [
-                "/bin/sh",
-                "-c",
-                "java -Xbootclasspath/p:" + new File(kytheDirectory, javaIndexerLocation).absolutePath +
-                        " com.google.devtools.kythe.analyzers.java.JavaIndexer " + importFile.absolutePath + " | " +
-                        new File(kytheDirectory, dedupStreamToolLocation).absolutePath + " | " +
-                        new File(kytheDirectory, triplesToolLocation).absolutePath +
-                        " >> " + outputFile.absolutePath
-        ]
-
-        def result = new ProcessExecutor()
-                .redirectOutput(System.out)
-                .redirectError(System.err)
-                .command(indexCommand).execute()
-        if (result.getExitValue() != 0) {
-            throw new KytheIndexException() //todo: fill in exception
-        }
     }
 }

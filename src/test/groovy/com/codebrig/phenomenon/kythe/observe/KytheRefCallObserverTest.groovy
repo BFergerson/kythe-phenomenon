@@ -106,7 +106,7 @@ class KytheRefCallObserverTest {
         assertNotNull(anotherOneMethodReferences)
         assertEquals(1, anotherOneMethodReferences.size())
         assertEquals(2, anotherOneMethodReferences.get(0).attributes.size())
-        assertEquals("com.gitdetective.MyClass.myMethod2()",
+        assertEquals("com.gitdetective.MyClass.myMethod2(java.lang.String)",
                 anotherOneMethodReferences.get(0).attributes.get("calledQualifiedName"))
     }
 }
