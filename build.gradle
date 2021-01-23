@@ -1,8 +1,8 @@
 plugins {
-    id "com.avast.gradle.docker-compose" version "0.6.6"
+    id "com.avast.gradle.docker-compose" version "0.9.1"
 }
 
-group = 'com.codebrig.phenomenon.kythe'
+group = 'com.codebrig.phenomena'
 version = '0.1'
 
 apply plugin: 'groovy'
@@ -13,20 +13,34 @@ repositories {
     maven {
         url 'https://repo.grakn.ai/repository/maven/'
     }
+    maven {
+        url "https://maven.pkg.github.com/codebrig/arthur"
+        credentials {
+            username = System.getenv("GITHUB_ACTOR") ?: System.getenv("gpr.user")
+            password = System.getenv("GITHUB_TOKEN") ?: System.getenv("gpr.key")
+        }
+    }
+    maven {
+        url "https://maven.pkg.github.com/codebrig/phenomena"
+        credentials {
+            username = System.getenv("GITHUB_ACTOR") ?: System.getenv("gpr.user")
+            password = System.getenv("GITHUB_TOKEN") ?: System.getenv("gpr.key")
+        }
+    }
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.13'
     testCompile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.0.1.201806211838-r'
 
-    compile 'org.codehaus.groovy:groovy-all:2.4.15'
-    compile 'com.github.codebrig:arthur:8bd6319a2e'
-    compile 'com.github.codebrig:phenomena:b0ca173d7f'
+    compile 'org.codehaus.groovy:groovy-all:3.0.7'
+    implementation 'com.codebrig:arthur:0.4.4'
+    implementation 'com.codebrig:phenomena:0.3.5'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation 'org.zeroturnaround:zt-exec:1.10'
     implementation 'com.h2database:h2:1.4.197'
-    implementation group: 'io.grakn.client', name: 'grakn-client', version: "1.6.2"
-    implementation group: 'io.graql', name: 'graql-lang', version: "1.0.6"
+    implementation group: 'io.grakn.client', name: 'grakn-client', version: "2.0.0-alpha-5"
+    implementation files('lib/bblfsh-client-1.11.1.jar')
     implementation 'org.bblfsh:bblfsh-client:1.11.0'
     compile files("opt/kythe-v0.0.44-a596810/indexers/java_indexer.jar")
 }
