@@ -50,8 +50,14 @@ class KytheIndexBuilder {
     KytheIndex build(List<KytheIndexObserver> indexObservers) throws KytheIndexException {
         kytheOutputDirectory.mkdirs()
 
+        def javacLocation = "/usr/lib/jvm/java-8-openjdk-amd64/bin/javac"
+        def javaLocation = "/usr/lib/jvm/java-8-openjdk-amd64/bin/java"
+        if (!new File(javacLocation).exists()) {
+            throw new KytheIndexException("Failed to find JDK 1.8 at $javacLocation")
+        }
+
         def mvnEnvironment = [
-                REAL_JAVAC                : "/usr/bin/javac",
+                REAL_JAVAC                : javacLocation,
                 KYTHE_CORPUS              : "kythe",
                 KYTHE_ROOT_DIRECTORY      : repositoryDirectory.absolutePath,
                 KYTHE_OUTPUT_DIRECTORY    : kytheOutputDirectory.absolutePath,
@@ -67,7 +73,7 @@ class KytheIndexBuilder {
                         new File(kytheDirectory, javacWrapperLocation).absolutePath +
                         " && find " +
                         kytheOutputDirectory.absolutePath +
-                        " -name '*.kzip' | xargs -L1 java -Xbootclasspath/p:" +
+                        " -name '*.kzip' | xargs -L1 $javaLocation -Xbootclasspath/p:" +
                         new File(kytheDirectory, javac9Location).absolutePath +
                         " -jar " +
                         new File(kytheDirectory, javaIndexerLocation).absolutePath + " | " +
