@@ -49,9 +49,9 @@ class KytheIndexBuilder {
 
     KytheIndex build(List<KytheIndexObserver> indexObservers) throws KytheIndexException {
         kytheOutputDirectory.mkdirs()
-
-        def javacLocation = "/usr/lib/jvm/java-8-openjdk-amd64/bin/javac"
-        def javaLocation = "/usr/lib/jvm/java-8-openjdk-amd64/bin/java"
+        def jdkLocation = System.getenv("JDK_LOCATION") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
+        def javacLocation = "$jdkLocation/bin/javac"
+        def javaLocation = "$jdkLocation/bin/java"
         if (!new File(javacLocation).exists()) {
             throw new KytheIndexException("Failed to find JDK 1.8 at $javacLocation")
         }
