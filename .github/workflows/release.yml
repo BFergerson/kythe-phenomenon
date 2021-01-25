@@ -22,4 +22,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Package
-        run: ./gradlew publish -Pgpr.user=$GITHUB_ACTOR -Pgpr.key=${{ secrets.GITHUB_TOKEN }} 
+        run: ./gradlew publish -Pgpr.user=${{ secrets.PHENOMENA_ACTOR }} -Pgpr.key=${{ secrets.PHENOMENA_TOKEN }}
