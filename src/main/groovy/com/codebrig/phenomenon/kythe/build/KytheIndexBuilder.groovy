@@ -2,6 +2,7 @@ package com.codebrig.phenomenon.kythe.build
 
 import com.codebrig.phenomenon.kythe.KytheIndexObserver
 import com.codebrig.phenomenon.kythe.model.KytheIndex
+import groovy.util.logging.Slf4j
 import org.zeroturnaround.exec.ProcessExecutor
 
 /**
@@ -11,6 +12,7 @@ import org.zeroturnaround.exec.ProcessExecutor
  * @since 0.1
  * @author <a href="mailto:brandon@srcpl.us">Brandon Fergerson</a>
  */
+@Slf4j
 class KytheIndexBuilder {
 
     static final String javacWrapperLocation = "extractors/javac-wrapper.sh"
@@ -70,6 +72,8 @@ class KytheIndexBuilder {
                 new File(kytheDirectory, runExtractorLocation).absolutePath +
                         " maven -javac_wrapper " + new File(kytheDirectory, javacWrapperLocation).absolutePath
         ]
+
+        log.info "Executing runextractor"
         def result = new ProcessExecutor()
                 .redirectOutput(System.out)
                 .redirectError(System.err)
@@ -79,11 +83,12 @@ class KytheIndexBuilder {
         if (result.getExitValue() != 0) {
             throw new KytheIndexException() //todo: fill in exception
         }
+        log.info "Finished runextractor"
 
         String jdk11Location = System.getenv("JDK_11_LOCATION") ?: "/usr/lib/jvm/java-11-openjdk-amd64"
         String java11Location = "$jdk11Location/bin/java"
         if (!new File(java11Location).exists()) {
-            throw new KytheIndexException("Failed to find JDK 11 at $jdk8Location")
+            throw new KytheIndexException("Failed to find JDK 11 at $java11Location")
         }
         def command2 = ["/bin/sh", "-c",
                         "find " + kytheOutputDirectory.absolutePath +
@@ -94,6 +99,8 @@ class KytheIndexBuilder {
                                 new File(kytheDirectory, triplesToolLocation).absolutePath + " >> " +
                                 new File(kytheOutputDirectory, "kythe_phenomenon_triples").absolutePath
         ]
+
+        log.info "Processing KZIP"
         result = new ProcessExecutor()
                 .redirectOutput(System.out)
                 .redirectError(System.err)
@@ -102,6 +109,7 @@ class KytheIndexBuilder {
         if (result.getExitValue() != 0) {
             throw new KytheIndexException() //todo: fill in exception
         }
+        log.info "Finished processing KZIP"
 
         def kytheIndex = new KytheIndexExtractor(kytheDirectory, indexObservers)
                 .processIndexFile(new File(kytheOutputDirectory, "kythe_phenomenon_triples"))

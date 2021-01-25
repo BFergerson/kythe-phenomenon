@@ -34,6 +34,7 @@ class KytheIndexExtractor {
     }
 
     KytheIndex processIndexFile(File importFile) {
+        log.info "Processing index file: $importFile"
         def index = new KytheIndex()
         index.kytheDirectory = kytheDirectory
         index.importFile = importFile
@@ -239,7 +240,7 @@ class KytheIndexExtractor {
                 }
             }
             if (index.definedFiles.contains(classQualifiedName)) {
-                log.debug "Defined function: " + qualifiedName
+                log.debug "Defined function: $qualifiedName"
                 index.definedFunctions.put(qualifiedName, subjectUri)
             } else {
                 log.warn "Undefined function: $qualifiedName - Could not find file definition: $classQualifiedName"
