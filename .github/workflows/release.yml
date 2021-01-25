@@ -15,14 +15,8 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
 
-      - name: Clean & Build
-        run: ./gradlew clean build -x test
-        env:
-          GITHUB_ACTOR: ${{ secrets.PHENOMENA_ACTOR }}
-          GITHUB_TOKEN: ${{ secrets.PHENOMENA_TOKEN }}
-
-      - name: Publish Package
-        run: ./gradlew publish
+      - name: Build & Publish
+        run: ./gradlew build publish -x test
         env:
           GITHUB_ACTOR: ${{ secrets.PHENOMENA_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.PHENOMENA_TOKEN }}
