@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.codebrig.phenomena'
-version = '0.1'
+version = '0.2'
 
 apply plugin: 'groovy'
 
@@ -38,15 +38,15 @@ repositories {
     maven {
         url "https://maven.pkg.github.com/codebrig/arthur"
         credentials {
-            username = System.getenv("GITHUB_ACTOR") ?: System.getenv("gpr.user")
-            password = System.getenv("GITHUB_TOKEN") ?: System.getenv("gpr.key")
+            username = System.getenv("GITHUB_ACTOR") ?: (System.getenv("gpr.user") ?: System.getProperty("gpr.user"))
+            password = System.getenv("GITHUB_TOKEN") ?: (System.getenv("gpr.key" ?: System.getProperty("gpr.key")))
         }
     }
     maven {
         url "https://maven.pkg.github.com/codebrig/phenomena"
         credentials {
-            username = System.getenv("GITHUB_ACTOR") ?: System.getenv("gpr.user")
-            password = System.getenv("GITHUB_TOKEN") ?: System.getenv("gpr.key")
+            username = System.getenv("GITHUB_ACTOR") ?: (System.getenv("gpr.user") ?: System.getProperty("gpr.user"))
+            password = System.getenv("GITHUB_TOKEN") ?: (System.getenv("gpr.key" ?: System.getProperty("gpr.key")))
         }
     }
 }
