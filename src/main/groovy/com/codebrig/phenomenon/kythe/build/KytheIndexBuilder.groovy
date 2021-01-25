@@ -21,7 +21,7 @@ class KytheIndexBuilder {
     static final String runExtractorLocation = "tools/runextractor"
     static final String javac9Location = "javac-9+181-r4173-1.jar"
     private final File repositoryDirectory
-    private File kytheDirectory = new File("opt/kythe-v0.0.44-a596810")
+    private File kytheDirectory = new File("opt/kythe-v0.0.49")
     private File kytheOutputDirectory = new File((System.getProperty("os.name").toLowerCase().startsWith("mac"))
             ? "/tmp" : System.getProperty("java.io.tmpdir"), "kythe-phenomenon")
 
@@ -49,15 +49,15 @@ class KytheIndexBuilder {
 
     KytheIndex build(List<KytheIndexObserver> indexObservers) throws KytheIndexException {
         kytheOutputDirectory.mkdirs()
-        String jdkLocation = System.getenv("JDK_LOCATION") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
-        String javacLocation = "$jdkLocation/bin/javac"
-        String javaLocation = "$jdkLocation/bin/java"
-        if (!new File(javacLocation).exists()) {
-            throw new KytheIndexException("Failed to find JDK 1.8 at $javacLocation")
+        String jdk8Location = System.getenv("JDK_LOCATION") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
+        String javac8Location = "$jdk8Location/bin/javac"
+        if (!new File(javac8Location).exists()) {
+            throw new KytheIndexException("Failed to find JDK 1.8 at $jdk8Location")
         }
 
         def mvnEnvironment = [
-                REAL_JAVAC                : javacLocation,
+                JAVA_HOME                 : jdk8Location,
+                REAL_JAVAC                : javac8Location,
                 KYTHE_CORPUS              : "kythe",
                 KYTHE_ROOT_DIRECTORY      : repositoryDirectory.absolutePath,
                 KYTHE_OUTPUT_DIRECTORY    : kytheOutputDirectory.absolutePath,
@@ -66,20 +66,9 @@ class KytheIndexBuilder {
                 KYTHE_OUTPUT_FILE         : new File(kytheOutputDirectory, "kythe_done.kzip").absolutePath
         ]
         def mvnCommand = [
-                "/bin/sh",
-                "-c",
+                "/bin/sh", "-c",
                 new File(kytheDirectory, runExtractorLocation).absolutePath +
-                        " maven -javac_wrapper " +
-                        new File(kytheDirectory, javacWrapperLocation).absolutePath +
-                        " && find " +
-                        kytheOutputDirectory.absolutePath +
-                        " -name '*.kzip' | xargs -L1 " + javaLocation + " -Xbootclasspath/p:" +
-                        new File(kytheDirectory, javac9Location).absolutePath +
-                        " -jar " +
-                        new File(kytheDirectory, javaIndexerLocation).absolutePath + " | " +
-                        new File(kytheDirectory, dedupStreamToolLocation).absolutePath + " | " +
-                        new File(kytheDirectory, triplesToolLocation).absolutePath + " >> " +
-                        new File(kytheOutputDirectory, "kythe_phenomenon_triples").absolutePath
+                        " maven -javac_wrapper " + new File(kytheDirectory, javacWrapperLocation).absolutePath
         ]
         def result = new ProcessExecutor()
                 .redirectOutput(System.out)
@@ -87,6 +76,29 @@ class KytheIndexBuilder {
                 .environment(mvnEnvironment)
                 .directory(repositoryDirectory)
                 .command(mvnCommand).execute()
+        if (result.getExitValue() != 0) {
+            throw new KytheIndexException() //todo: fill in exception
+        }
+
+        String jdk11Location = System.getenv("JDK_11_LOCATION") ?: "/usr/lib/jvm/java-11-openjdk-amd64"
+        String java11Location = "$jdk11Location/bin/java"
+        if (!new File(javac8Location).exists()) {
+            throw new KytheIndexException("Failed to find JDK 11 at $jdk8Location")
+        }
+        def command2 = ["/bin/sh", "-c",
+                        "find " + kytheOutputDirectory.absolutePath +
+                                " -name '*.kzip' | xargs -L1 " + java11Location +
+                                " -jar " +
+                                new File(kytheDirectory, javaIndexerLocation).absolutePath + " | " +
+                                new File(kytheDirectory, dedupStreamToolLocation).absolutePath + " | " +
+                                new File(kytheDirectory, triplesToolLocation).absolutePath + " >> " +
+                                new File(kytheOutputDirectory, "kythe_phenomenon_triples").absolutePath
+        ]
+        result = new ProcessExecutor()
+                .redirectOutput(System.out)
+                .redirectError(System.err)
+                .directory(repositoryDirectory)
+                .command(command2).execute()
         if (result.getExitValue() != 0) {
             throw new KytheIndexException() //todo: fill in exception
         }

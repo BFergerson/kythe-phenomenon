@@ -146,6 +146,8 @@ class KytheIndex {
     static String getQualifiedClassName(String qualifiedName) {
         if (!qualifiedName.contains('(')) {
             return qualifiedName
+        } else if (qualifiedName == "<clinit>()") {
+            return qualifiedName
         }
         def withoutArgs = qualifiedName.substring(0, qualifiedName.indexOf("("))
         if (withoutArgs.contains("<")) {
