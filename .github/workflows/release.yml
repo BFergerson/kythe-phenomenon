@@ -18,8 +18,11 @@ jobs:
       - name: Clean & Build
         run: ./gradlew clean build -x test
         env:
-          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ secrets.PHENOMENA_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.PHENOMENA_TOKEN }}
 
       - name: Publish Package
-        run: ./gradlew publish -Pgpr.user=${{ secrets.PHENOMENA_ACTOR }} -Pgpr.key=${{ secrets.PHENOMENA_TOKEN }}
+        run: ./gradlew publish
+        env:
+          GITHUB_ACTOR: ${{ secrets.PHENOMENA_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.PHENOMENA_TOKEN }}
