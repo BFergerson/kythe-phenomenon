@@ -15,9 +15,6 @@ jobs:
         with:
           java-version: '11'
 
-      - run: java -version
-      - run: which javac
-
       - uses: actions/setup-java@v1
         with:
           java-version: '8'
@@ -42,6 +39,7 @@ jobs:
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JDK_LOCATION: "/opt/hostedtoolcache/jdk/8.0.282/x64"
+          JDK_11_LOCATION: "/opt/hostedtoolcache/jdk/11.0.10/x64"
 
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
