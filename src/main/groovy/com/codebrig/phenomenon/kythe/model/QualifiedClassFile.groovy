@@ -15,4 +15,9 @@ import groovy.transform.TupleConstructor
 class QualifiedClassFile implements Serializable {
     String qualifiedName
     String fileLocation
+
+    QualifiedClassFile(String qualifiedName, String fileLocation) {
+        this.qualifiedName = qualifiedName
+        this.fileLocation = fileLocation
+    }
 }

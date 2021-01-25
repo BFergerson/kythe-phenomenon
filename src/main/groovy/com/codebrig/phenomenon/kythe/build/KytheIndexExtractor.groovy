@@ -6,6 +6,7 @@ import com.codebrig.phenomenon.kythe.model.QualifiedClassFile
 import com.google.common.collect.Sets
 import com.google.devtools.kythe.proto.MarkedSource
 import com.google.devtools.kythe.util.KytheURI
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 /**
@@ -16,6 +17,7 @@ import groovy.util.logging.Slf4j
  * @author <a href="mailto:brandon@srcpl.us">Brandon Fergerson</a>
  */
 @Slf4j
+@CompileStatic
 class KytheIndexExtractor {
 
     private static final Set<String> KYTHE_ENTITY_PARSE_SET = Sets.newHashSet(
