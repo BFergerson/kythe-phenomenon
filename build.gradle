@@ -1,11 +1,33 @@
 plugins {
     id "com.avast.gradle.docker-compose" version "0.9.1"
+    id("maven-publish")
 }
 
 group = 'com.codebrig.phenomena'
 version = '0.1'
 
 apply plugin: 'groovy'
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/codebrig/phenomena")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: (System.getenv("gpr.user") ?: System.getProperty("gpr.user"))
+                password = System.getenv("GITHUB_TOKEN") ?: (System.getenv("gpr.key" ?: System.getProperty("gpr.key")))
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            groupId group
+            artifactId jar.baseName.toLowerCase()
+
+            from(components.java)
+        }
+    }
+}
 
 repositories {
     mavenCentral()
@@ -39,7 +61,7 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation 'org.zeroturnaround:zt-exec:1.10'
     implementation 'com.h2database:h2:1.4.197'
-    implementation group: 'io.grakn.client', name: 'grakn-client', version: "2.0.0-alpha-5"
+    implementation group: 'io.grakn.client', name: 'grakn-client', version: "2.0.0-alpha-6"
     implementation files('lib/bblfsh-client-1.11.1.jar')
     implementation 'org.bblfsh:bblfsh-client:1.11.0'
     compile files("opt/kythe-v0.0.44-a596810/indexers/java_indexer.jar")
