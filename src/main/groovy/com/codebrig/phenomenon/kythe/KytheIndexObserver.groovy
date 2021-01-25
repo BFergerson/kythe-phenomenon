@@ -1,6 +1,7 @@
 package com.codebrig.phenomenon.kythe
 
 import com.codebrig.phenomena.code.CodeObserver
+import com.codebrig.phenomenon.kythe.build.KytheIndexBuilder
 import com.codebrig.phenomenon.kythe.model.KytheIndex
 
 /**
@@ -12,14 +13,10 @@ import com.codebrig.phenomenon.kythe.model.KytheIndex
  */
 abstract class KytheIndexObserver extends CodeObserver {
 
-    private KytheIndex kytheIndex
+    protected KytheIndexBuilder indexBuilder
 
-    void setKytheIndex(KytheIndex kytheIndex) {
-        this.kytheIndex = kytheIndex
-    }
-
-    KytheIndex getKytheIndex() {
-        return kytheIndex
+    KytheIndexObserver(KytheIndexBuilder indexBuilder) {
+        this.indexBuilder = Objects.requireNonNull(indexBuilder)
     }
 
     abstract void preprocessKytheTriple(KytheIndex index, String subject, String predicate, String object)

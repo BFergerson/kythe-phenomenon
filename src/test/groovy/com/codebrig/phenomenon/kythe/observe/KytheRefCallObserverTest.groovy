@@ -29,11 +29,9 @@ class KytheRefCallObserverTest {
                 .setTimeout(TimeUnit.MINUTES.toSeconds(5) as int)
                 .call()
 
+        def indexBuilder = new KytheIndexBuilder(outDir).setKytheOutputDirectory(outDir)
         def kytheObservers = new ArrayList<KytheIndexObserver>()
-        kytheObservers.add(new KytheRefCallObserver())
-        def index = new KytheIndexBuilder(outDir)
-                .setKytheOutputDirectory(outDir)
-                .build(kytheObservers)
+        kytheObservers.add(new KytheRefCallObserver(indexBuilder))
 
         def phenomena = new Phenomena()
         phenomena.scanPath = new ArrayList<>()
@@ -66,11 +64,9 @@ class KytheRefCallObserverTest {
                 .setTimeout(TimeUnit.MINUTES.toSeconds(5) as int)
                 .call()
 
+        def indexBuilder = new KytheIndexBuilder(outDir).setKytheOutputDirectory(outDir)
         def kytheObservers = new ArrayList<KytheIndexObserver>()
-        kytheObservers.add(new KytheRefCallObserver())
-        def index = new KytheIndexBuilder(outDir)
-                .setKytheOutputDirectory(outDir)
-                .build(kytheObservers)
+        kytheObservers.add(new KytheRefCallObserver(indexBuilder))
 
         def phenomena = new Phenomena()
         phenomena.scanPath = new ArrayList<>()

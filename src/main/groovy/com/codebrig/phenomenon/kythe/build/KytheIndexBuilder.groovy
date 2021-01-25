@@ -26,6 +26,8 @@ class KytheIndexBuilder {
     private File kytheDirectory = new File("opt/kythe-v0.0.49")
     private File kytheOutputDirectory = new File((System.getProperty("os.name").toLowerCase().startsWith("mac"))
             ? "/tmp" : System.getProperty("java.io.tmpdir"), "kythe-phenomenon")
+    private List<KytheIndexObserver> indexObservers = new ArrayList<>()
+    private KytheIndex kytheIndex
 
     KytheIndexBuilder(File repositoryDirectory) {
         this.repositoryDirectory = Objects.requireNonNull(repositoryDirectory)
@@ -49,7 +51,18 @@ class KytheIndexBuilder {
         return kytheOutputDirectory
     }
 
-    KytheIndex build(List<KytheIndexObserver> indexObservers) throws KytheIndexException {
+    void addKytheIndexObserver(KytheIndexObserver observer) {
+        indexObservers.add(Objects.requireNonNull(observer))
+    }
+
+    KytheIndex getIndex() {
+        if (kytheIndex == null) {
+            build()
+        }
+        return kytheIndex
+    }
+
+    void build() throws KytheIndexException {
         kytheOutputDirectory.mkdirs()
         String jdk8Location = System.getenv("JDK_LOCATION") ?: "/usr/lib/jvm/java-8-openjdk-amd64"
         String javac8Location = "$jdk8Location/bin/javac"
@@ -111,11 +124,7 @@ class KytheIndexBuilder {
         }
         log.info "Finished processing KZIP"
 
-        def kytheIndex = new KytheIndexExtractor(kytheDirectory, indexObservers)
+        kytheIndex = new KytheIndexExtractor(kytheDirectory, indexObservers)
                 .processIndexFile(new File(kytheOutputDirectory, "kythe_phenomenon_triples"))
-        indexObservers.each {
-            it.setKytheIndex(kytheIndex)
-        }
-        return kytheIndex
     }
 }

@@ -5,6 +5,7 @@ import com.codebrig.arthur.observe.structure.filter.FunctionFilter
 import com.codebrig.arthur.observe.structure.filter.TypeFilter
 import com.codebrig.phenomena.code.ContextualNode
 import com.codebrig.phenomenon.kythe.KytheIndexObserver
+import com.codebrig.phenomenon.kythe.build.KytheIndexBuilder
 import com.codebrig.phenomenon.kythe.model.KytheIndex
 import com.codebrig.phenomenon.kythe.model.KytheReferenceCall
 import com.google.common.base.Charsets
@@ -28,6 +29,11 @@ class KytheRefCallObserver extends KytheIndexObserver {
     private static final TypeFilter FUNCTION_CALL_FILTER = new TypeFilter("MethodInvocation") //todo: language agnostic
     private final Map<String, Map<String, KytheReferenceCall>> referenceCalls = new HashMap<>()
 
+    KytheRefCallObserver(KytheIndexBuilder indexBuilder) {
+        super(indexBuilder)
+        indexBuilder.addKytheIndexObserver(this)
+    }
+
     @Override
     void applyObservation(ContextualNode node, ContextualNode parentNode) {
         if (!node.hasName()) {
@@ -35,7 +41,7 @@ class KytheRefCallObserver extends KytheIndexObserver {
             return
         }
 
-        def declarationUri = kytheIndex.definedFunctions.get(node.name)
+        def declarationUri = indexBuilder.index.definedFunctions.get(node.name)
         if (declarationUri == null) {
             log.error("Node missing uri: " + node.name)
         } else {
