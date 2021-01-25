@@ -15,5 +15,11 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
 
+      - name: Clean & Build
+        run: ./gradlew clean build -x test
+        env:
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish Package
         run: ./gradlew publish -Pgpr.user=$GITHUB_ACTOR -Pgpr.key=${{ secrets.GITHUB_TOKEN }} 
