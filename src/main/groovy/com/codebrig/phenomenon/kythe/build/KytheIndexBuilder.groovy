@@ -82,7 +82,7 @@ class KytheIndexBuilder {
 
         String jdk11Location = System.getenv("JDK_11_LOCATION") ?: "/usr/lib/jvm/java-11-openjdk-amd64"
         String java11Location = "$jdk11Location/bin/java"
-        if (!new File(javac8Location).exists()) {
+        if (!new File(java11Location).exists()) {
             throw new KytheIndexException("Failed to find JDK 11 at $jdk8Location")
         }
         def command2 = ["/bin/sh", "-c",
